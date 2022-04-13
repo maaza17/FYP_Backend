@@ -31,7 +31,7 @@ mongoose
       process.env.DB_USER +
       ":" +
       process.env.DB_PASS +
-      "@cardladder.zzbyz.mongodb.net/" +
+      "@fyp.tkd8x.mongodb.net/" +
       process.env.DB_NAME +
       "?retryWrites=true&w=majority",
     { useNewUrlParser: true, useUnifiedTopology: true }
