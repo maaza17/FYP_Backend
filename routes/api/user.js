@@ -10,6 +10,9 @@ const validateLoginInput = require("../../validation/login");
 // Load User Model
 const userModel = require("../../models/User");
 
+// Load nodemailer transport object
+const transport = require('../../config/nodemailer')
+
 // function to generate unique confirmation code for user registeration
 function getConfirmationCode(){
     const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -54,18 +57,36 @@ router.post("/register", (req, res) => {
             newUser.password = hash;
             newUser
               .save()
-              .then((user) =>
-                res.status(200).json({
-                  success: true,
-                  error: false,
-                  user:user,
-                  message: "User successfully registered!",
+              .then((user) => {
+
+                var mailOptions = {
+                  from: '"TCGFISH" <maaz.haque17@gmail.com>',
+                  to: newUser.email,
+                  subject: 'TCGFISH ACCOUNT VERIFICATION',
+                  html: '<body><h2>Hello '+ newUser.firstName +'</h2><p> Please follow the link below to verify your account:</p><a href="http://www.google.com">VERIFY</a></body>'
+                };
+
+                transport.sendMail(mailOptions, (error, info) => {
+                  if (error) {
+                    console.log(error)
+                    return res.status(200).json({
+                      error: true,
+                      message: error.message,
+                    });
+                  }
+                  console.log('Message sent: %s', info.messageId);
+                    res.status(200).json({
+                    success: true,
+                    error: false,
+                    user:user,
+                    message: "User successfully registered! Check email for account verification!",
+                  })
                 })
-              )
+              })
               .catch((err) => {
                 return res
                   .status(200)
-                  .json({ success: false, message: "Please try agin later" });
+                  .json({ success: false, message: "Unexpected error occured. Please try agin later" });
               });
           });
         });
@@ -94,6 +115,13 @@ router.post("/login", (req, res) => {
         return res
         .status(200)
         .json({ success: false, message: "Can not find account with this email." });
+      } else if(user.status === "Pending"){
+        return res
+        .status(200)
+        .json({
+          error: false,
+          message: "Account verification pending. Follow the link sent to your registered email address to verify account!"
+        })
       }
       // Check password
       bcrypt.compare(password, user.password).then((isMatch) => {
@@ -125,6 +153,43 @@ router.post("/login", (req, res) => {
       });
     });
   });
+
+  router.get('/verifyuser/:confirmationCode', (req, res, next) => {
+    userModel.findOne({
+      confirmationCode: req.params.confirmationCode,
+    })
+      .then((user) => {
+        if (!user) {
+          return res.status(200).json({
+            error: true,
+            message: "User Not found."
+          });
+        }
+
+        if(user.status == "Active"){
+          return res.status(200).json({
+            error: false,
+            message: "Account already verified."
+          });
+        }
+  
+        user.status = "Active";
+        user.save((err) => {
+          if (err) {
+            return res.status(200).json({
+              error: true,
+              message: "Unexpected error occured. Please try again later."
+            });
+          } else {
+            return res.status(200).json({
+              error: false,
+              message: "Success: Account Verified."
+            });
+          }
+        });
+      })
+      .catch((e) => console.log("error", e));
+  })
 
 
   module.exports = router;
