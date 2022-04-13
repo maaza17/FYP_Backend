@@ -23,6 +23,44 @@ function getConfirmationCode(){
     return token
 }
 
+// Get Profile POST Route
+// @router POST api/users/getprofile
+// @desc Fetch user profile
+// @access Public
+router.post("/getprofile", (req, res) => {
+  jwt.verify(req.body.token, keys.secretOrKey, function (err, decoded) {
+    if (err) {
+      return res
+        .status(200)
+        .json({ error: true, message: "Unable to fetch profile" });
+    }
+    if (decoded) {
+      const id = decoded.id;
+      userModel.findOne({ _id: id, is_deleted: false }).then((user) => {
+        if (user) {
+          return res
+            .status(200)
+            .json({
+              error: false,
+              data: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                registerDate: user.registerDate,
+                status: user.status
+              },
+              message: "User found.",
+            });
+        } else {
+          return res
+            .status(200)
+            .json({ error: true, message: "Unexpected error occured. Please try later." });
+        }
+      });
+    }
+  });
+});
+
 // Register POST Route
 // @route POST api/users/register
 // @desc Register user
@@ -33,14 +71,21 @@ router.post("/register", (req, res) => {
     if (!isValid) {
       return res
         .status(200)
-        .json({ success: false, message: "Invalid Data Entered" });
+        .json({
+          error: true,
+          error_message: errors,
+          message: "Check error messages!"
+        });
     }
   
     userModel.findOne({ email: req.body.email }, (err, user) => {
       if (user) {
         return res
           .status(200)
-          .json({ success: false, message: "This email is already registered with another account! Kindly use a different email address." });
+          .json({
+            error: true,
+            message: "This email is already registered with another account! Kindly use a different email address."
+          });
       } else {
         const newUser = new userModel({
           firstName: req.body.firstName,
@@ -76,7 +121,7 @@ router.post("/register", (req, res) => {
                   }
                   console.log('Message sent: %s', info.messageId);
                     res.status(200).json({
-                    success: true,
+                    error: false,
                     error: false,
                     user:user,
                     message: "User successfully registered! Check email for account verification!",
@@ -86,7 +131,10 @@ router.post("/register", (req, res) => {
               .catch((err) => {
                 return res
                   .status(200)
-                  .json({ success: false, message: "Unexpected error occured. Please try agin later" });
+                  .json({
+                    error: true,
+                    message: "Unexpected error occured. Please try agin later"
+                  });
               });
           });
         });
@@ -103,7 +151,11 @@ router.post("/login", (req, res) => {
   
     // Check validation
     if (!isValid) {
-      return res.status(200).json({ message: "Invalid Data Entered" });
+      return res.status(200).json({
+        error:true,
+        error_message: errors,
+        message: "Check error messages."
+      });
     }
     const email = req.body.email;
     const password = req.body.password;
@@ -114,7 +166,10 @@ router.post("/login", (req, res) => {
       if (!user) {
         return res
         .status(200)
-        .json({ success: false, message: "Can not find account with this email." });
+        .json({
+          error: true,
+          message: "Can not find account with this email."
+        });
       } else if(user.status === "Pending"){
         return res
         .status(200)
@@ -129,8 +184,11 @@ router.post("/login", (req, res) => {
           // User matched, create jwt payload
           const payload = {
             id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
             email: user.email,
-            firstName: user.firstName
+            registerDate: user.registerDate,
+            status: user.status
           };
   
           // Sign token
@@ -140,7 +198,7 @@ router.post("/login", (req, res) => {
             { expiresIn: 31556926 },
             (err, token) => {
               res.json({
-                success: true,
+                error: false,
                 token: token,
               });
             }
@@ -148,7 +206,10 @@ router.post("/login", (req, res) => {
         } else {
           return res
           .status(200)
-          .json({ success: false, message: "Password incorrect!" });
+          .json({
+            error: true,
+            message: "Password incorrect!"
+          });
         }
       });
     });
