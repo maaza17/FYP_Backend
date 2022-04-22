@@ -142,7 +142,7 @@ router.post("/register", (req, res) => {
     });
   });
 
-  // Login POST Route
+// Login POST Route
 // @route POST api/users/login
 // @desc Login user and return JWT token
 // @access Public
@@ -215,6 +215,12 @@ router.post("/login", (req, res) => {
     });
   });
 
+
+
+// user Verification GET Route
+// @route GET api/users/verifyuser/:confirmationcode
+// @desc Activate user account once registered by following link sent to to email
+// @access Limited
   router.get('/verifyuser/:confirmationCode', (req, res, next) => {
     userModel.findOne({
       confirmationCode: req.params.confirmationCode,
@@ -251,6 +257,40 @@ router.post("/login", (req, res) => {
       })
       .catch((e) => console.log("error", e));
   })
+
+
+// get user favourites POST Route
+// @route POST api/users/getfavourites
+// @desc get favourite cards for any user
+// @access Limited
+router.post('/getfavourites', (req, res) => {
+  let token = req.body.token
+
+  jwt.verify(token, process.env.ENCRYPTION_SECRET, (err, decoded) => {
+    if(err){
+      return res.status(200).json({
+        error: true,
+        message: err.message
+      })
+    } else {
+      userModel.findById(decoded.id, {favourites: 1}, (error, docs) => {
+        if(error){
+          return res.status(200).json({
+            error: true,
+            message: err.message
+          })
+        } else {
+          return res.status(200).json({
+            error: false,
+            message: 'Found favourites for user!',
+            data: docs
+          })
+        }
+      })
+    }
+  })
+
+})
 
 
   module.exports = router;

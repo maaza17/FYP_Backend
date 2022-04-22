@@ -17,6 +17,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    favourites: {
+        type: [{
+            card_id:{
+                type: String,
+                required: true
+            }
+        }],
+        required: true,
+        default: []
+    },
     registerDate: {
         type: Date,
         required: true,
