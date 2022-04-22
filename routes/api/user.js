@@ -277,7 +277,7 @@ router.post('/getfavourites', (req, res) => {
         if(error){
           return res.status(200).json({
             error: true,
-            message: err.message
+            message: 'Unexpected error occured!'
           })
         } else {
           return res.status(200).json({
@@ -289,8 +289,127 @@ router.post('/getfavourites', (req, res) => {
       })
     }
   })
+})
 
+// add card to user favourites POST Route
+// @route POST api/users/addfavourite
+// @desc add card to any user's favourites
+// @access Limited
+router.post('/addfavourite', (req, res) => {
+  let token = req.body.token
+  let card_id = req.body.card_id
+
+  jwt.verify(token, process.env.ENCRYPTION_SECRET, (err, decoded) => {
+    if(err){
+      return res.status(200).json({
+        error: true,
+        message: err.message
+      })
+    } else {
+      userModel.findById(decoded.id, (error, doc) => {
+        if(error){
+          return res.status(200).json({
+            error: true,
+            message: 'Unexpected error occured!'
+          })
+        } else {
+          let temp = {
+            card_id: card_id
+          }
+          if(doc.favourites.find(temp)){
+            return res.status(200).json({
+              error: true,
+              message: "Card already in favourites!"
+            })
+          } else {
+            doc.favourites.push(temp)
+            doc.save((err2) => {
+              if(err2){
+                return res.status(200).json({
+                  error: true,
+                  message: "Unexpected error occured."
+                })
+              } else {
+                return res.status(200).json({
+                  error: false,
+                  message: "Card added to favourites!"
+                })
+              }
+            })
+          }
+        }
+      })
+    }
+  })
+})
+
+
+// remove card from user favourites POST Route
+// @route POST api/users/removefavourite
+// @desc remove card from any user's favourites
+// @access Limited
+router.post('/removefavourite', (req, res) => {
+  let token = req.body.token
+  let card_id = req.body.card_id
+
+  jwt.verify(token, process.env.ENCRYPTION_SECRET, (err, decoded) => {
+    if(err){
+      return res.status(200).json({
+        error: true,
+        message: err.message
+      })
+    } else {
+      userModel.findById(decoded.id, (error, doc) => {
+        if(error){
+          return res.status(200).json({
+            error: true,
+            message: 'Unexpected error occured!'
+          })
+        } else {
+          let temp = {
+            card_id: card_id
+          }
+          if(! doc.favourites.find(temp)){
+            return res.status(200).json({
+              error: true,
+              message: "Card not in favourites!"
+            })
+          } else {
+            doc.favourites = doc.favourites.filter(obj => obj.card_id !== card_id)
+            doc.save((err2) => {
+              if(err2){
+                return res.status(200).json({
+                  error: true,
+                  message: "Unexpected error occured."
+                })
+              } else {
+                return res.status(200).json({
+                  error: false,
+                  message: "Card removed from favourites!"
+                })
+              }
+            })
+          }
+        }
+      })
+    }
+  })
 })
 
 
   module.exports = router;
+  
+
+
+
+  //  //token verification code snippet 
+  // jwt.verify(token, process.env.ENCRYPTION_SECRET, (err, decoded) => {
+  //   if(err){
+  //     return res.status(200).json({
+  //       error: true,
+  //       message: err.message
+  //     })
+  //   } else {
+      
+  //   }
+  // })
