@@ -306,42 +306,80 @@ router.post('/addfavourite', (req, res) => {
         message: err.message
       })
     } else {
-      userModel.findById(decoded.id, (error, doc) => {
-        if(error){
-          return res.status(200).json({
-            error: true,
-            message: 'Unexpected error occured!'
-          })
-        } else {
-          let temp = {
-            card_id: card_id
-          }
-          if(doc.favourites.find(temp)){
+      if(decoded){
+        userModel.findById(decoded.id, (error, user) => {
+          if(error){
             return res.status(200).json({
               error: true,
-              message: "Card already in favourites!"
+              message: error.message
             })
           } else {
-            doc.favourites.push(temp)
-            doc.save((err2) => {
-              if(err2){
-                return res.status(200).json({
-                  error: true,
-                  message: "Unexpected error occured."
+            console.log(user)
+            if(user){
+              let temp = {card_id: card_id}
+
+              if(user.favourites.length == 0){
+                user.favourites.push(temp)
+                user.save((err2) => {
+                  if(err2){
+                    return res.status(200).json({
+                      error: true,
+                      message: 'Unexpected error occured.'
+                    })
+                  } else {
+                    return res.status(200).json({
+                      error: false,
+                      message: 'Card added to favourites.'
+                    })
+                  }
                 })
               } else {
-                return res.status(200).json({
-                  error: false,
-                  message: "Card added to favourites!"
+                user.favourites.find((post, index) => {
+                  if(post.card_id == temp.card_id){
+                    return res.status(200).json({
+                      error: true,
+                      message: 'Card is already favourited.'
+                    })
+                  } else {
+                    user.favourites.push(temp)
+                    user.save((err2) => {
+                      if(err2){
+                        return res.status(200).json({
+                          error: true,
+                          message: 'Unexpected error occured.'
+                        })
+                      } else {
+                        return res.status(200).json({
+                          error: false,
+                          message: 'Card added to favourites.'
+                        })
+                      }
+                    })
+                  }
                 })
               }
-            })
+
+            } else {
+              return res.status(200).json({
+                error: true,
+                message: 'User not found!.'
+              })
+            }
           }
-        }
-      })
+        })
+      } else {
+        return res.status(200).json({
+          error: true,
+          message: 'Unexpected error occured.'
+        })
+      }     
     }
   })
+
+
 })
+
+
 
 
 // remove card from user favourites POST Route
@@ -359,45 +397,51 @@ router.post('/removefavourite', (req, res) => {
         message: err.message
       })
     } else {
-      userModel.findById(decoded.id, (error, doc) => {
-        if(error){
-          return res.status(200).json({
-            error: true,
-            message: 'Unexpected error occured!'
-          })
-        } else {
-          let temp = {
-            card_id: card_id
-          }
-          if(! doc.favourites.find(temp)){
+      if(decoded){
+        userModel.findById(decoded.id, (error, user) => {
+          if(error){
             return res.status(200).json({
               error: true,
-              message: "Card not in favourites!"
+              message: error.message
             })
           } else {
-            doc.favourites = doc.favourites.filter(obj => obj.card_id !== card_id)
-            doc.save((err2) => {
-              if(err2){
-                return res.status(200).json({
-                  error: true,
-                  message: "Unexpected error occured."
-                })
-              } else {
-                return res.status(200).json({
-                  error: false,
-                  message: "Card removed from favourites!"
-                })
-              }
-            })
+            console.log(user)
+            if(user){
+              
+              user.favourites = user.favourites.filter(x => x.card_id != card_id)
+              user.save((err2) => {
+                if(err2){
+                  return res.status(200).json({
+                    error: true,
+                    message: 'Unexpected error occured.'
+                  })
+                } else {
+                  return res.status(200).json({
+                    error: false,
+                    message: 'Card removed from favourites.'
+                  })
+                }
+              })
+
+            } else {
+              return res.status(200).json({
+                error: true,
+                message: 'User not found!.'
+              })
+            }
           }
-        }
-      })
+        })
+      } else {
+        return res.status(200).json({
+          error: true,
+          message: 'Unexpected error occured.'
+        })
+      }     
     }
   })
 })
 
-
-  module.exports = router;
+module.exports = router;
   
 
 

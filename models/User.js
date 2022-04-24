@@ -19,10 +19,8 @@ const userSchema = new mongoose.Schema({
     },
     favourites: {
         type: [{
-            card_id:{
-                type: String,
-                required: true
-            }
+            card_id: String,
+            _id: false
         }],
         required: true,
         default: []
