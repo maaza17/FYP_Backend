@@ -314,10 +314,8 @@ router.post('/addfavourite', (req, res) => {
               message: error.message
             })
           } else {
-            console.log(user)
             if(user){
               let temp = {card_id: card_id}
-
               if(user.favourites.length == 0){
                 user.favourites.push(temp)
                 user.save((err2) => {
@@ -405,9 +403,7 @@ router.post('/removefavourite', (req, res) => {
               message: error.message
             })
           } else {
-            console.log(user)
-            if(user){
-              
+            if(user){              
               user.favourites = user.favourites.filter(x => x.card_id != card_id)
               user.save((err2) => {
                 if(err2){
