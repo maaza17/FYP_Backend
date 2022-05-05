@@ -108,7 +108,7 @@ router.post("/register", (req, res) => {
                   from: '"TCGFISH" <maaz.haque17@gmail.com>',
                   to: newUser.email,
                   subject: 'TCGFISH ACCOUNT VERIFICATION',
-                  html: '<body><h2>Hello '+ newUser.firstName +'</h2><p> Please follow the link below to verify your account:</p><a href="http://www.google.com">VERIFY</a></body>'
+                  html: `<body><h2>Hello ${newUser.firstName}</h2><p> Please follow the link below to verify your account:</p><a href=http://www.google.com/confirm/${confirmationCode}>VERIFY</a></body>`
                 };
 
                 transport.sendMail(mailOptions, (error, info) => {
