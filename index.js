@@ -8,6 +8,7 @@ const sales = require("./routes/api/sales");
 const revenue = require("./routes/api/revenue");
 const market = require("./routes/api/market");
 const user = require("./routes/api/user")
+const msv = require("./routes/api/msv");
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -46,6 +47,7 @@ app.use("/api/population", population);
 app.use("/api/revenue", revenue);
 app.use("/api/market", market);
 app.use("/api/user", user);
+app.use("/api/msv", msv);
 
 const port = process.env.PORT || 7000;
 
