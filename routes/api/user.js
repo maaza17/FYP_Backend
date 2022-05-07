@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose')
 
 // Load input validation
 const validateRegisterInput = require("../../validation/register");
@@ -9,6 +10,10 @@ const validateLoginInput = require("../../validation/login");
 
 // Load User Model
 const userModel = require("../../models/User");
+
+// Load card model
+const cardSchema = require("../../models/Cards")
+const cardModel = new mongoose.model('card', cardSchema)
 
 // Load nodemailer transport object
 const transport = require("../../config/nodemailer");
@@ -105,7 +110,7 @@ router.post("/register", (req, res) => {
           newUser
             .save()
             .then((user) => {
-              console.log(newUser);
+              // console.log(newUser);
               var mailOptions = {
                 from: '"TCGFISH" <maaz.haque17@gmail.com>',
                 to: newUser.email,
@@ -162,7 +167,7 @@ router.post("/login", (req, res) => {
       message: "Check error messages.",
     });
   }
-  console.log(req.body);
+  // console.log(req.body);
   const email = req.body.email;
   const password = req.body.password;
 
@@ -185,7 +190,7 @@ router.post("/login", (req, res) => {
     bcrypt.compare(password, user.password).then((isMatch) => {
       if (isMatch) {
         // User matched, create jwt payload
-        console.log("password correct");
+        // console.log("password correct");
         const payload = {
           id: user._id,
           firstName: user.firstName,
@@ -206,10 +211,10 @@ router.post("/login", (req, res) => {
               token: token,
               success: true,
             });
-            console.log(token);
+            // console.log(token);
           }
         );
-        console.log(payload);
+        // console.log(payload);
       } else {
         return res.status(200).json({
           error: true,
@@ -218,7 +223,7 @@ router.post("/login", (req, res) => {
       }
     });
   });
-  console.log(res);
+  // console.log(res);
 });
 
 // user Verification GET Route
@@ -284,11 +289,29 @@ router.post("/getfavourites", (req, res) => {
             message: "Unexpected error occured!",
           });
         } else {
-          return res.status(200).json({
-            error: false,
-            message: "Found favourites for user!",
-            data: docs,
-          });
+            // res.send(docs)
+          if(docs.favourites.length == 0){
+            return res.status(200).json({
+              error: false,
+              message: 'User has no favourite cards!',
+              data: []
+            })
+          } else {
+            cardModel.find({_id: {$in: docs.favourites}}, {name_search:false, set_name_search:false, language_search:false, searchOn:false, releaseYear_search:false}, (err, favs) => {
+              if(err){
+                return res.status(200).json({
+                  error: true,
+                  message: err.message
+                })
+              } else {
+                return res.status(200).json({
+                  error: false,
+                  message: 'Found user\'s favourite cards',
+                  data: favs
+                })
+              }
+            })
+          }
         }
       });
     }
@@ -318,12 +341,12 @@ router.post("/addfavourite", (req, res) => {
               message: error.message,
             });
           } else {
-            console.log("user");
-            console.log(user);
+            // console.log("user");
+            // console.log(user);
             if (user) {
-              let temp = { card_id: card_id };
+              // let temp = { card_id: card_id };
               if (user.favourites.length === 0) {
-                user.favourites.push(temp);
+                user.favourites.push(card_id);
                 user.save((err2) => {
                   if (err2) {
                     return res.status(200).json({
@@ -338,9 +361,9 @@ router.post("/addfavourite", (req, res) => {
                   }
                 });
               } else {
-                let num = user.favourites.indexOf(temp);
+                let num = user.favourites.indexOf(card_id);
                 if (num === -1) {
-                  user.favourites.push(temp);
+                  user.favourites.push(card_id);
                   user.save((err2) => {
                     if (err2) {
                       return res.status(200).json({
@@ -404,7 +427,7 @@ router.post("/removefavourite", (req, res) => {
           } else {
             if (user) {
               user.favourites = user.favourites.filter(
-                (x) => x.card_id != card_id
+                (x) => x != card_id
               );
               user.save((err2) => {
                 if (err2) {
