@@ -40,6 +40,10 @@ const MSV_RankingSchema = new mongoose.Schema({
     image: {
         type: String,
         required: true
+    },
+    csvOrder: {
+        type: Number,
+        required: true
     }
 })
 

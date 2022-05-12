@@ -68,7 +68,7 @@ router.post('/getTopCards', (req, res) => {
                     data: docs
                 })
             }
-        })
+        }).sort({'csvOrder':1})
     } else {
         return res.status(200).json({
             error: false,
