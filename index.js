@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const compression = require('compression');
 require("dotenv").config();
 
 const cards = require("./routes/api/cards");
@@ -26,6 +27,13 @@ app.use(function (req, res, next) {
   );
   next();
 });
+
+
+app.use(compression({
+  level: 6,
+  threshold: 0
+}))
+
 
 mongoose
   .connect(
