@@ -118,7 +118,7 @@ router.post("/register", (req, res) => {
                 html:
                   "<body><h2>Hello " +
                   newUser.firstName +
-                  "</h2><p> Please follow the link below to verify your account:</p><a href=http://localhost:3000/confirm/" +
+                  "</h2><p> Please follow the link below to verify your account:</p><a href=http://fyp.walzixdigitals.com/confirm/" +
                   newUser.confirmationCode +
                   ">VERIFY</a></body>",
               };
@@ -429,6 +429,7 @@ router.post("/removefavourite", (req, res) => {
               user.favourites = user.favourites.filter(
                 (x) => x != card_id
               );
+              console.log(user.favourites);
               user.save((err2) => {
                 if (err2) {
                   return res.status(200).json({
